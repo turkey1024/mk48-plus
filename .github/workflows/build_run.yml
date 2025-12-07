@@ -1,8 +1,5 @@
 name: Build and Release
 
-# 触发规则：
-# 1. 推送 v 开头的标签（如 v1.0.0）时触发正式发布
-# 2. 手动点击按钮触发测试
 on:
   push:
     tags:
@@ -12,7 +9,6 @@ on:
 env:
   CARGO_TERM_COLOR: always
 
-# 必须赋予写权限，否则无法上传 Release
 permissions:
   contents: write
 
@@ -22,15 +18,23 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # --- 1. 环境准备 ---
+      # 1. 检出代码
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      # 2. 开启虚拟内存 (防止大型编译崩溃)
+      - name: Set up Swap Space
+        uses: pierotofy/set-swap-space@master
+        with:
+          swap-size-gb: 10
+
+      # 3. 安装 Node.js
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '16'
 
+      # 4. 安装 Rust
       - name: Install Rust Toolchain
         uses: actions-rs/toolchain@v1
         with:
@@ -39,55 +43,67 @@ jobs:
           components: rust-src, rustfmt, clippy
           target: x86_64-unknown-linux-gnu
 
+      # 5. 安装 Trunk
       - name: Install Trunk
         uses: jetli/trunk-action@v0.1.0
         with:
           version: 'v0.15.0'
 
-      # --- 2. 执行构建 ---
-      
-      # 构建游戏客户端 (WASM)
+      # 6. 编译各个组件
       - name: Build Game Client
         working-directory: ./client
         run: trunk build --release
 
-      # 构建管理后台 (JS)
       - name: Build Admin Panel
         working-directory: ./engine/js
         run: npm install && npm run build
 
-      # 构建服务端 (Rust Binary)
       - name: Build Server
         run: cargo build --release --manifest-path server/Cargo.toml
 
-      # --- 3. 打包整理 ---
-      
+      # 7. 打包整理 (智能查找版)
       - name: Package Artifacts
         run: |
-          echo "正在整理文件..."
-          # 创建发布目录结构
+          echo ">>> 开始整理文件..."
           mkdir -p release_package/public
           mkdir -p release_package/admin_ui
           
-          # A. 复制服务端程序
-          cp target/release/server release_package/mk48-server
-          chmod +x release_package/mk48-server
+          # === 关键修改：智能查找二进制文件 ===
+          echo ">>> 正在查找编译生成的 server 文件..."
           
-          # B. 复制客户端资源 (Web)
-          # 注意：trunk build 默认输出到 dist
+          # 在 target 目录中查找名为 'server' 的可执行文件
+          # -type f: 找文件
+          # -not -name "*.*": 排除 .d .rlib 等后缀文件
+          SERVER_PATH=$(find target -name "server" -type f -executable | head -n 1)
+          
+          # 如果在根目录 target 没找到，尝试在子目录找 (容错)
+          if [ -z "$SERVER_PATH" ]; then
+             SERVER_PATH=$(find server/target -name "server" -type f -executable 2>/dev/null | head -n 1)
+          fi
+
+          if [ -n "$SERVER_PATH" ]; then
+            echo "✅ 找到服务端文件: $SERVER_PATH"
+            cp "$SERVER_PATH" release_package/mk48-server
+            chmod +x release_package/mk48-server
+          else
+            echo "❌ 错误：无法找到名为 'server' 的可执行文件！"
+            echo ">>> 正在列出 target 目录结构帮助排查："
+            find target -maxdepth 3 -not -path '*/deps/*'
+            exit 1
+          fi
+          # ==========================================
+          
+          # 复制客户端资源
           cp -r client/dist/* release_package/public/
           
-          # C. 复制管理后台资源
-          # 注意：根据日志，npm build 输出到了 engine/js/public
+          # 复制管理后台资源
           cp -r engine/js/public/* release_package/admin_ui/
           
-          # D. 压缩为 tar.gz
+          # 压缩
           tar -czvf mk48-linux-x64.tar.gz -C release_package .
-          echo "打包完成：mk48-linux-x64.tar.gz"
+          echo ">>> 打包完成: mk48-linux-x64.tar.gz"
 
-      # --- 4. 发布结果 ---
-
-      # 场景 A: 打标签触发时，创建 Release 并上传
+      # 8. 发布 Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -97,11 +113,11 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 场景 B: 手动触发时，作为 Artifact 上传（用于测试）
-      - name: Upload Artifact (Manual Test)
+      # 9. 手动测试上传
+      - name: Upload Artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
         with:
-          name: mk48-manual-build
+          name: mk48-debug-build
           path: mk48-linux-x64.tar.gz
           retention-days: 3
