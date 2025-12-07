@@ -208,9 +208,29 @@ impl World {
                         {
                             noise *= 2.0;
 
-                            if data.kind != EntityKind::Boat || data.sub_kind == EntitySubKind::Aeroplane || data.sub_kind == EntitySubKind::Helicopter {
+                            if data.kind != EntityKind::Boat
+                                || data.sub_kind == EntitySubKind::Aeroplane
+                                || data.sub_kind == EntitySubKind::Helicopter
+                            {
                                 noise += 100.0;
-                            } else if entity.extension().is_horn() && matches!(data.sub_kind, EntitySubKind::Battleship | EntitySubKind::Carrier | EntitySubKind::Corvette | EntitySubKind::Cruiser | EntitySubKind::Destroyer | EntitySubKind::Dreadnought | EntitySubKind::Icebreaker | EntitySubKind::LandingShip | EntitySubKind::Lcs | EntitySubKind::Mtb | EntitySubKind::Passenger | EntitySubKind::Submarine | EntitySubKind::Tanker) {
+                            } else if entity.extension().is_horn()
+                                && matches!(
+                                    data.sub_kind,
+                                    EntitySubKind::Battleship
+                                        | EntitySubKind::Carrier
+                                        | EntitySubKind::Corvette
+                                        | EntitySubKind::Cruiser
+                                        | EntitySubKind::Destroyer
+                                        | EntitySubKind::Dreadnought
+                                        | EntitySubKind::Icebreaker
+                                        | EntitySubKind::LandingShip
+                                        | EntitySubKind::Lcs
+                                        | EntitySubKind::Mtb
+                                        | EntitySubKind::Passenger
+                                        | EntitySubKind::Submarine
+                                        | EntitySubKind::Tanker
+                                )
+                            {
                                 noise += 200.0;
                             } else if entity.extension().is_active()
                                 && data.sensors.sonar.range > 0.0
@@ -272,7 +292,7 @@ impl World {
                     if player_entity.is_some() && data.sub_kind == EntitySubKind::Starship {
                         uncertainty = 0.0;
                     }
-                    
+
                     if uncertainty >= 1.0 {
                         // This player has no knowledge of this entity,
                         // so it is not a contact.

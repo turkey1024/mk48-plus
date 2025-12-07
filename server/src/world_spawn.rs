@@ -187,13 +187,13 @@ impl World {
                     }
                 }
                 if data.sub_kind == EntitySubKind::TankShell {
-                    return true
+                    return true;
                 } else if data.sub_kind == EntitySubKind::GlideBomb {
-                    return entity.altitude > Altitude(100)
+                    return entity.altitude > Altitude(100);
                 } else {
-                return entity
-                    .collides_with_terrain(&self.terrain, Ticks::PERIOD_SECS)
-                    .is_none();
+                    return entity
+                        .collides_with_terrain(&self.terrain, Ticks::PERIOD_SECS)
+                        .is_none();
                 }
             }
             EntityKind::Collectible | EntityKind::Aircraft => {
@@ -207,9 +207,13 @@ impl World {
                 {
                     return false;
                 }
-                
-                if data.sub_kind == EntitySubKind::Tank || data.sub_kind == EntitySubKind::Helicopter {
-                    return !entity.collides_with_terrain(&self.terrain, Ticks::PERIOD_SECS).is_none();
+
+                if data.sub_kind == EntitySubKind::Tank
+                    || data.sub_kind == EntitySubKind::Helicopter
+                {
+                    return !entity
+                        .collides_with_terrain(&self.terrain, Ticks::PERIOD_SECS)
+                        .is_none();
                 }
                 // TODO: Terrain/keel depth check.
             }
@@ -266,8 +270,9 @@ impl World {
     /// Spawn basic entities (crates, oil platforms) to maintain their densities.
     pub fn spawn_statics(&mut self, ticks: Ticks) {
         let crate_count = self.arena.count(EntityType::Crate);
-        let platform_count =
-            self.arena.count(EntityType::OilPlatform) + self.arena.count(EntityType::Hq) + self.arena.count(EntityType::SuperOilPlatform);
+        let platform_count = self.arena.count(EntityType::OilPlatform)
+            + self.arena.count(EntityType::Hq)
+            + self.arena.count(EntityType::SuperOilPlatform);
 
         self.spawn_static_amount(
             |_| Some(EntityType::Crate),

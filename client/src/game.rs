@@ -337,16 +337,45 @@ impl GameClient for Mk48Game {
                 let friendly = context.state.core.is_friendly(contact.player_id());
                 let volume = Self::volume_at(distance);
                 let play_horn = contact.horn();
-                
-                if (data.kind == EntityKind::Aircraft && !matches!(entity_type, EntityType::Vindicator | EntityType::B2)) || data.sub_kind == EntitySubKind::Aeroplane || data.sub_kind == EntitySubKind::Helicopter {
-                    if matches!(entity_type, EntityType::SuperEtendard | EntityType::F35 | EntityType::J20 | EntityType::Xwing) {
+
+                if (data.kind == EntityKind::Aircraft
+                    && !matches!(entity_type, EntityType::Vindicator | EntityType::B2))
+                    || data.sub_kind == EntitySubKind::Aeroplane
+                    || data.sub_kind == EntitySubKind::Helicopter
+                {
+                    if matches!(
+                        entity_type,
+                        EntityType::SuperEtendard
+                            | EntityType::F35
+                            | EntityType::J20
+                            | EntityType::Xwing
+                    ) {
                         jet_volume += 1.25 * volume;
                     } else {
                         aircraft_volume += 1.25 * volume;
                     }
                 }
 
-                if play_horn && matches!(data.sub_kind, EntitySubKind::Battleship | EntitySubKind::Carrier | EntitySubKind::Corvette | EntitySubKind::Cruiser | EntitySubKind::Destroyer | EntitySubKind::Dreadnought | EntitySubKind::Icebreaker | EntitySubKind::LandingShip | EntitySubKind::Lcs | EntitySubKind::Mtb | EntitySubKind::Passenger | EntitySubKind::Submarine | EntitySubKind::Tanker) {horn_volume += 1.5 * volume};
+                if play_horn
+                    && matches!(
+                        data.sub_kind,
+                        EntitySubKind::Battleship
+                            | EntitySubKind::Carrier
+                            | EntitySubKind::Corvette
+                            | EntitySubKind::Cruiser
+                            | EntitySubKind::Destroyer
+                            | EntitySubKind::Dreadnought
+                            | EntitySubKind::Icebreaker
+                            | EntitySubKind::LandingShip
+                            | EntitySubKind::Lcs
+                            | EntitySubKind::Mtb
+                            | EntitySubKind::Passenger
+                            | EntitySubKind::Submarine
+                            | EntitySubKind::Tanker
+                    )
+                {
+                    horn_volume += 1.5 * volume
+                };
 
                 if context.state.game.entity_id.is_some() && distance < 250.0 {
                     let distance_scale = 1000.0 / (500.0 + distance);
@@ -668,7 +697,8 @@ impl GameClient for Mk48Game {
                         let f = map_ranges(transform.velocity.to_mps(), 0.0..4.0, 1.0..0.0, true);
 
                         // Waves modify rendered position and direction.
-                        transform.position += Vec2::new(input.x.sin() * 3.0, input.y.sin()) * (f * 0.9);
+                        transform.position +=
+                            Vec2::new(input.x.sin() * 3.0, input.y.sin()) * (f * 0.9);
                         transform.direction += Angle::from_radians(
                             input.dot(Vec2::new(0.7, 1.3)).sin() * (f * (PI / 10.0)),
                         );
@@ -725,8 +755,7 @@ impl GameClient for Mk48Game {
                 for (i, turret) in data.turrets.iter().enumerate() {
                     if let Some(turret_type) = turret.entity_type {
                         let pos = turret.position();
-                        if turret.hidden
-                        {
+                        if turret.hidden {
                             continue;
                         }
                         sortable_sprites.push(SortableSprite::new_child_entity(
@@ -947,7 +976,9 @@ impl GameClient for Mk48Game {
                                     })
                                 {
                                     let armament = &data.armaments[i];
-                                    if armament.entity_type != EntityType::Depositor || armament.entity_type != EntityType::Shovel {
+                                    if armament.entity_type != EntityType::Depositor
+                                        || armament.entity_type != EntityType::Shovel
+                                    {
                                         let transform = *contact.transform();
                                         let direction = contact.transform().direction;
                                         let color = hud_color;
@@ -1148,14 +1179,17 @@ impl GameClient for Mk48Game {
                             };
 
                             let c = color_bytes;
-                            if data.sub_kind != EntitySubKind::Drone && !(context.state.core.player_id.is_some() && contact.player_id() == context.state.core.player_id) { 
+                            if data.sub_kind != EntitySubKind::Drone
+                                && !(context.state.core.player_id.is_some()
+                                    && contact.player_id() == context.state.core.player_id)
+                            {
                                 layer.text.draw(
-                                &text,
-                                contact.transform().position
-                                    + Vec2::new(0.0, overlay_vertical_position + 0.035 * zoom),
-                                0.035 * zoom,
-                                [c[0], c[1], c[2], 255],
-                            );
+                                    &text,
+                                    contact.transform().position
+                                        + Vec2::new(0.0, overlay_vertical_position + 0.035 * zoom),
+                                    0.035 * zoom,
+                                    [c[0], c[1], c[2], 255],
+                                );
                             }
                         }
                         EntityKind::Weapon | EntityKind::Decoy | EntityKind::Aircraft => {
@@ -1198,7 +1232,9 @@ impl GameClient for Mk48Game {
                     && (data.sub_kind != EntitySubKind::Submarine
                         || contact.transform().velocity > data.cavitation_speed(contact.altitude()))
                 {
-                    if data.sub_kind == EntitySubKind::Shell || data.sub_kind == EntitySubKind::TankShell {
+                    if data.sub_kind == EntitySubKind::Shell
+                        || data.sub_kind == EntitySubKind::TankShell
+                    {
                         let t = contact.transform();
                         layer.trails.add_trail(
                             entity_id,
@@ -1206,13 +1242,16 @@ impl GameClient for Mk48Game {
                             t.direction.to_vec() * t.velocity.to_mps(),
                             data.width * 2.0,
                         );
-                    } else if matches!(entity_type, EntityType::Spitfire | EntityType::Catalina) && contact.altitude().is_airborne() { //aeroplane particles on wing tips
-                        let width = 0.5*data.width;
+                    } else if matches!(entity_type, EntityType::Spitfire | EntityType::Catalina)
+                        && contact.altitude().is_airborne()
+                    {
+                        //aeroplane particles on wing tips
+                        let width = 0.5 * data.width;
                         let position = contact.transform().position;
                         let velocity = Vec2::new(0.0, 0.0);
 
-                        let position1 = position + width*tangent_vector;
-                        let position2 = position - width*tangent_vector;
+                        let position1 = position + width * tangent_vector;
+                        let position2 = position - width * tangent_vector;
 
                         let particle1 = Mk48Particle {
                             position: position1,
@@ -1230,14 +1269,24 @@ impl GameClient for Mk48Game {
                         };
                         layer.airborne_particles.add(particle1);
                         layer.airborne_particles.add(particle2);
-                    } else if matches!(entity_type, EntityType::Xwing | EntityType::J20 | EntityType::F35 | EntityType::Vindicator | EntityType::B2) && contact.altitude().is_airborne() {
-                        let width = 0.5*data.width;
-                        let length = 0.4*data.length;
+                    } else if matches!(
+                        entity_type,
+                        EntityType::Xwing
+                            | EntityType::J20
+                            | EntityType::F35
+                            | EntityType::Vindicator
+                            | EntityType::B2
+                    ) && contact.altitude().is_airborne()
+                    {
+                        let width = 0.5 * data.width;
+                        let length = 0.4 * data.length;
                         let position = contact.transform().position;
                         let velocity = Vec2::new(0.0, 0.0);
 
-                        let position1 = position + width*tangent_vector - direction_vector * length;
-                        let position2 = position - width*tangent_vector - direction_vector * length;
+                        let position1 =
+                            position + width * tangent_vector - direction_vector * length;
+                        let position2 =
+                            position - width * tangent_vector - direction_vector * length;
 
                         let particle1 = Mk48Particle {
                             position: position1,
@@ -1255,7 +1304,12 @@ impl GameClient for Mk48Game {
                         };
                         layer.airborne_particles.add(particle1);
                         layer.airborne_particles.add(particle2);
-                    } else if data.sub_kind == EntitySubKind::Drone || data.sub_kind == EntitySubKind::Starship || data.sub_kind == EntitySubKind::Helicopter || data.sub_kind == EntitySubKind::Laser || data.kind == EntityKind::Aircraft{ // no particles on drones/starship
+                    } else if data.sub_kind == EntitySubKind::Drone
+                        || data.sub_kind == EntitySubKind::Starship
+                        || data.sub_kind == EntitySubKind::Helicopter
+                        || data.sub_kind == EntitySubKind::Laser
+                        || data.kind == EntityKind::Aircraft
+                    { // no particles on drones/starship
                     } else if data.kind == EntityKind::Weapon && contact.altitude().is_airborne() {
                         let position = contact.transform().position;
                         let velocity = Vec2::new(0.0, 0.0);
@@ -1698,7 +1752,8 @@ impl GameClient for Mk48Game {
     }
 }
 
-impl Mk48Game { //sounds edited
+impl Mk48Game {
+    //sounds edited
     fn set_active(&mut self, active: bool, context: &Context<Self>) {
         if let Some(contact) = context.state.game.player_contact() {
             if active && contact.data().sensors.sonar.range >= 0.0 {

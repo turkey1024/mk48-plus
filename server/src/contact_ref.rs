@@ -58,7 +58,11 @@ impl<'a> ContactRef<'a> {
             self.reloads,
             *self.transform(),
             self.turrets_arc().cloned(),
-            if self.entity.is_boat() {self.entity.extension().horn} else {false}, // non-boats never have horn
+            if self.entity.is_boat() {
+                self.entity.extension().horn
+            } else {
+                false
+            }, // non-boats never have horn
         )
     }
 

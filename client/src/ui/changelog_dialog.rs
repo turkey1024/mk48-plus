@@ -20,7 +20,8 @@ pub fn changelog_dialog() -> Html {
 }
 
 #[inline(never)]
-fn changelog_2023() -> Html { //<li>{""}</li>
+fn changelog_2023() -> Html {
+    //<li>{""}</li>
     html! {
         <>
             <h2>{"2023"}</h2>
@@ -202,7 +203,7 @@ fn changelog_2023() -> Html { //<li>{""}</li>
             </ul>
 
             <h3>{"9 Jan '23"}</h3>
-            
+
             <ul>
                 <li>{"Changed status overlay and level meter"}</li>
                 <li>{"Added aeroplane sounds to the playable aeroplanes"}</li>

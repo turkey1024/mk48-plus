@@ -1182,7 +1182,7 @@ pub enum EntityType {
     )]
     #[entity(Boat, Starship, level = 12)]
     #[size(length = 1600, width = 878, draft = 0.0)]
-    #[props(speed = 270.833)]
+    #[props(speed = 400.0, damage = 8.0)]
     #[sensors(visual, radar)]
     #[armament(TieFighter, forward = 0.0, side = 0.0, angle = 0.0, count = 12, hidden)]
     #[turret(Turbolaser, forward = 130.8086, side = -215.0364, symmetrical)]
@@ -1584,7 +1584,7 @@ pub enum EntityType {
     #[entity(Turret, Gun)]
     #[size(length = 1, width = 1)]
     #[offset(forward = 0)]
-    #[armament(Blaster, angle = 0)]
+    #[armament(TurbolaserBeam, angle = 0)]
     Turbolaser,
     #[info(label = "Sherman Turret")]
     #[entity(Turret, Gun)]
@@ -1859,6 +1859,11 @@ pub enum EntityType {
     #[size(length = 2.0, width = 0.3)]
     #[props(speed = 1184, range = 100000)]
     VBlaster,
+    #[info(label = "Turbolaser Beam")]
+    #[entity(Weapon, Laser)]
+    #[size(length = 2.0, width = 0.3)]
+    #[props(speed = 2000.0, range = 200000.0, reload = 0.5, damage = 18.0)]
+    TurbolaserBeam,
     #[info(label = "Vindicator Projector")]
     #[entity(Weapon, Shell)]
     #[size(length = 25.0, width = 0.0)]

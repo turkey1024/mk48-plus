@@ -507,13 +507,13 @@ fn generate_vegetation(
             // 160 & 161 & 162 leaves some trees floating on water, so use 163
             if v <= 163 {
                 return None;
-            }
-            else if v <= 190 {tree_type = EntityType::Palm;}
-            else if v > 190 {
+            } else if v <= 190 {
+                tree_type = EntityType::Palm;
+            } else if v > 190 {
                 match modulus {
                     0 => tree_type = EntityType::Acacia,
                     2 => tree_type = EntityType::AverageTree,
-                    _ => tree_type = EntityType::AverageTree
+                    _ => tree_type = EntityType::AverageTree,
                 }
             }
 

@@ -156,12 +156,12 @@ impl InterpolatedContact {
                                         * (i as f32 * (1.0 / amount as f32))
                                     + direction_vector.perp()
                                         * forward_velocity
-                                    * 0.15
-                                    * (rng.gen::<f32>() - 0.5),
-                            radius: (armament_entity_data.width * 5.0).clamp(1.0, 3.0),
-                            color: -1.0,
-                            smoothness: 1.0,
-                        };
+                                        * 0.15
+                                        * (rng.gen::<f32>() - 0.5),
+                                radius: (armament_entity_data.width * 5.0).clamp(1.0, 3.0),
+                                color: -1.0,
+                                smoothness: 1.0,
+                            };
 
                             if is_submerged {
                                 layer.sea_level_particles.add(particle);
@@ -170,7 +170,8 @@ impl InterpolatedContact {
                             }
                         }
                     } else {
-                        forward_velocity = 2.0 * forward_velocity * armament_entity_data.length.min(1.0);
+                        forward_velocity =
+                            2.0 * forward_velocity * armament_entity_data.length.min(1.0);
                         for i in 0..amount {
                             let fire = Mk48Particle {
                                 position: armament_transform.position
@@ -186,7 +187,7 @@ impl InterpolatedContact {
                                 color: -1.0 + rng.gen::<f32>(),
                                 smoothness: 0.85,
                             };
-                        layer.airborne_particles.add(fire);
+                            layer.airborne_particles.add(fire);
                         }
                     }
                 }
@@ -225,7 +226,9 @@ impl Mk48Game {
             let volume =
                 Mk48Game::volume_at(player_position.distance(contact.transform().position))
                     .min(0.25);
-            if entity_type == EntityType::Uap {return};
+            if entity_type == EntityType::Uap {
+                return;
+            };
             let name = match entity_type.data().kind {
                 EntityKind::Boat | EntityKind::Aircraft => "splash",
                 EntityKind::Weapon => match entity_type.data().sub_kind {
@@ -234,7 +237,7 @@ impl Mk48Game {
                     | EntitySubKind::Sam
                     | EntitySubKind::Rocket
                     | EntitySubKind::RocketTorpedo
-                    | EntitySubKind::Shell 
+                    | EntitySubKind::Shell
                     | EntitySubKind::TankShell => "explosion",
                     _ => "splash",
                 },

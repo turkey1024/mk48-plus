@@ -121,18 +121,20 @@ impl Bot {
                 let angle =
                     Angle::from_radians(i as f32 * (2.0 * std::f32::consts::PI / SAMPLES as f32));
                 let delta_position = angle.to_vec() * data.length;
-                if boat_type != EntityType::Sherman && boat_type != EntityType::Abrams && Self::is_land_or_border(
+                if boat_type != EntityType::Sherman
+                    && boat_type != EntityType::Abrams
+                    && Self::is_land_or_border(
+                        boat.transform().position + delta_position,
+                        terrain,
+                        update.world_radius(),
+                    )
+                {
+                    repel(&mut movement, delta_position, 0.5 * data.length.powi(2));
+                } else if Self::is_land_or_border(
                     boat.transform().position + delta_position,
                     terrain,
                     update.world_radius(),
                 ) {
-                    repel(&mut movement, delta_position, 0.5 * data.length.powi(2));
-                }
-                else if Self::is_land_or_border(
-                    boat.transform().position + delta_position,
-                    terrain,
-                    update.world_radius(),
-                )  {
                     attract(&mut movement, delta_position, 0.5 * data.length.powi(2));
                 }
             }
@@ -176,7 +178,9 @@ impl Bot {
                             (contact_data.level + 1 >= data.level
                                 && !matches!(
                                     contact_data.sub_kind,
-                                    EntitySubKind::Dredger | EntitySubKind::Icebreaker | EntitySubKind::Passenger
+                                    EntitySubKind::Dredger
+                                        | EntitySubKind::Icebreaker
+                                        | EntitySubKind::Passenger
                                 ))
                                 || contact.player_id().map(|id| id.is_bot()).unwrap_or(false)
                                 || distance_squared < 1.5 * data.radius.powi(2)

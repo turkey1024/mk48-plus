@@ -34,7 +34,7 @@ pub(crate) enum Mutation {
         impulse: Velocity,
         entity_type: EntityType,
     },
-    HitByAntiAir{
+    HitByAntiAir {
         other_player: Arc<PlayerTuple<Server>>,
         anti_aircraft: f32,
     },
@@ -182,18 +182,21 @@ impl Mutation {
                 entity.transform.velocity =
                     (entity.transform.velocity + impulse).clamp_magnitude(Velocity::from_mps(20.0));
             }
-            Self::HitByAntiAir{other_player, anti_aircraft} => {
+            Self::HitByAntiAir {
+                other_player,
+                anti_aircraft,
+            } => {
                 let entity = &mut entities[index];
                 let e_score = entity.borrow_player().score;
 
-                if entity.kill_in(delta, Ticks::from_secs(1.0/anti_aircraft)) {
+                if entity.kill_in(delta, Ticks::from_secs(1.0 / anti_aircraft)) {
                     let killer_alias = {
                         let mut other_player = other_player.borrow_player_mut();
                         other_player.score += kill_score(entity.borrow_player().score, e_score);
                         let alias = other_player.alias();
                         drop(other_player);
                         alias
-                    };    
+                    };
                     world.remove(index, DeathReason::AntiAir(killer_alias))
                 }
             }

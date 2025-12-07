@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 use crate::ui::sprite::Sprite;
-use common::entity::{EntityData, EntityKind, EntityType, EntitySubKind};
+use common::entity::{EntityData, EntityKind, EntitySubKind, EntityType};
 use common::util::level_to_score;
 use stylist::yew::styled_component;
 use yew::{html, html_nested, Html};

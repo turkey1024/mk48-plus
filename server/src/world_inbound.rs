@@ -6,8 +6,8 @@ use crate::player::Status;
 use crate::protocol::*;
 use crate::server::Server;
 use crate::world::World;
-use common::angle::Angle;
 use common::altitude::Altitude;
+use common::angle::Angle;
 use common::entity::*;
 use common::protocol::*;
 use common::terrain::TerrainMutation;
@@ -43,7 +43,10 @@ impl CommandTrait for Spawn {
             return Err("cannot spawn while already alive");
         }
 
-        if !self.entity_type.can_spawn_as(player.score, player.is_bot(), moderator) {
+        if !self
+            .entity_type
+            .can_spawn_as(player.score, player.is_bot(), moderator)
+        {
             return Err("cannot spawn as given entity type");
         }
 
@@ -57,7 +60,7 @@ impl CommandTrait for Spawn {
             // Default to spawning near the center of the world, with more points making you spawn further north.
             let raw_spawn_y = map_ranges(
                 score_to_level(player.score) as f32,
-                1.5..(EntityData::MAX_BOAT_LEVEL * 10/25) as f32,
+                1.5..(EntityData::MAX_BOAT_LEVEL * 10 / 25) as f32,
                 // But lets not stop people from spawning in the arctic for evil and balance reasons
                 // now that it has become more accessible
                 -0.85 * world.radius..0.85 * world.radius,
@@ -291,7 +294,12 @@ impl CommandTrait for Fire {
                 return Err("cannot fire while surfacing as a boat");
             }
 
-            if entity.altitude > Altitude(50) && !(matches!(data.sub_kind, EntitySubKind::Aeroplane | EntitySubKind::Starship | EntitySubKind::Helicopter) ){
+            if entity.altitude > Altitude(50)
+                && !(matches!(
+                    data.sub_kind,
+                    EntitySubKind::Aeroplane | EntitySubKind::Starship | EntitySubKind::Helicopter
+                ))
+            {
                 return Err("cannot fire while flying high (lol)");
             }
 
@@ -312,7 +320,7 @@ impl CommandTrait for Fire {
             if armament_entity_data.sub_kind == EntitySubKind::Depositor {
                 if let Some(mut target) = aim_target {
                     // Can't deposit in arctic.
-                    target.y = target.y.min((ARCTIC-50.0) - 2.0 * common::terrain::SCALE);
+                    target.y = target.y.min((ARCTIC - 50.0) - 2.0 * common::terrain::SCALE);
 
                     // Clamp target is in valid range from depositor or error if too far.
                     const DEPOSITOR_RANGE: f32 = 60.0;
@@ -324,10 +332,10 @@ impl CommandTrait for Fire {
                 } else {
                     return Err("cannot deposit without aim target");
                 }
-            } else if armament_entity_data.sub_kind == EntitySubKind::Shovel { 
+            } else if armament_entity_data.sub_kind == EntitySubKind::Shovel {
                 if let Some(mut target) = aim_target {
                     // Can't deposit in arctic.
-                    target.y = target.y.min((ARCTIC-50.0) - 2.0 * common::terrain::SCALE);
+                    target.y = target.y.min((ARCTIC - 50.0) - 2.0 * common::terrain::SCALE);
 
                     // Clamp target is in valid range from depositor or error if too far.
                     const DEPOSITOR_RANGE: f32 = 60.0;
@@ -339,7 +347,7 @@ impl CommandTrait for Fire {
                 } else {
                     return Err("cannot shovel without aim target");
                 }
-            } else if armament_entity_data.sub_kind == EntitySubKind::Mine { 
+            } else if armament_entity_data.sub_kind == EntitySubKind::Mine {
                 let player_arc = Arc::clone(player_tuple);
 
                 drop(player);
@@ -468,15 +476,16 @@ impl CommandTrait for Upgrade {
     ) -> Result<(), &'static str> {
         let mut player = player_tuple.borrow_player_mut();
         let status = &mut player.data.status;
-        
 
         if let Status::Alive { entity_index, .. } = status {
             let entity = &mut world.entities[*entity_index];
             let moderator = player.client().map(|c| c.moderator).unwrap_or(false);
-            if !entity
-                .entity_type
-                .can_upgrade_to(self.entity_type, player.score, player.is_bot(), moderator)
-            {
+            if !entity.entity_type.can_upgrade_to(
+                self.entity_type,
+                player.score,
+                player.is_bot(),
+                moderator,
+            ) {
                 return Err("cannot upgrade to provided entity type");
             }
 

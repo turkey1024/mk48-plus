@@ -169,7 +169,11 @@ impl World {
                             EntitySubKind::Ekranoplan => {
                                 entity.apply_altitude_target(
                                     terrain,
-                                    Some(common::altitude::Altitude(( (10.0 * entity.transform.velocity.to_mps() / data.speed.to_mps()).abs() ) as i8)),
+                                    Some(common::altitude::Altitude(
+                                        ((10.0 * entity.transform.velocity.to_mps()
+                                            / data.speed.to_mps())
+                                        .abs()) as i8,
+                                    )),
                                     2.0,
                                     delta,
                                 );
@@ -177,7 +181,12 @@ impl World {
                             EntitySubKind::Aeroplane => {
                                 entity.apply_altitude_target(
                                     terrain,
-                                    Some(common::altitude::Altitude((( (169.0 / data.speed.to_mps()) * (entity.transform.velocity.to_mps() - 25.0)).clamp(0.0, 250.0) ) as i8)),
+                                    Some(common::altitude::Altitude(
+                                        (((169.0 / data.speed.to_mps())
+                                            * (entity.transform.velocity.to_mps() - 25.0))
+                                            .clamp(0.0, 250.0))
+                                            as i8,
+                                    )),
                                     4.0,
                                     delta,
                                 );
@@ -185,14 +194,17 @@ impl World {
                             EntitySubKind::Helicopter => {
                                 entity.apply_altitude_target(
                                     terrain,
-                                    Some(common::altitude::Altitude((2.0 * entity.transform.velocity.to_mps().clamp(0.0, 250.0)) as i8)),
+                                    Some(common::altitude::Altitude(
+                                        (2.0 * entity.transform.velocity.to_mps().clamp(0.0, 250.0))
+                                            as i8,
+                                    )),
                                     3.0,
                                     delta,
                                 );
                             }
                             EntitySubKind::Passenger => {
-                                let rate: f32 = 3.0/4.0;
-        
+                                let rate: f32 = 3.0 / 4.0;
+
                                 if rand::thread_rng()
                                     .gen_bool((1.0 - (1.0 - rate).powf(delta_seconds)) as f64)
                                 {
@@ -208,7 +220,8 @@ impl World {
                                     delta,
                                 );
                             }
-                            _ => {entity.apply_altitude_target(
+                            _ => {
+                                entity.apply_altitude_target(
                                     terrain,
                                     Some(entity.extension().altitude_target()),
                                     2.0,
@@ -228,7 +241,7 @@ impl World {
                         let rate: f32 = match entity.entity_type {
                             EntityType::OilPlatform => 1.0 / 4.0,
                             EntityType::Hq => 2.0 / 4.0,
-                            EntityType::SuperOilPlatform => 3.0/4.0,
+                            EntityType::SuperOilPlatform => 3.0 / 4.0,
                             _ => 0.0,
                         };
 
@@ -244,9 +257,13 @@ impl World {
                     _ => {}
                 }
 
-                entity
-                    .transform
-                    .apply_guidance(data, entity.guidance, max_speed, delta_seconds, entity.ticks);
+                entity.transform.apply_guidance(
+                    data,
+                    entity.guidance,
+                    max_speed,
+                    delta_seconds,
+                    entity.ticks,
+                );
                 entity.transform.do_kinematics(delta_seconds);
 
                 let arctic = entity.transform.position.y >= ARCTIC;
@@ -254,12 +271,16 @@ impl World {
                 let collision = entity.collides_with_terrain(terrain, delta_seconds);
 
                 // kill tanks & helicopters who touch water
-                if collision.is_none() && (data.sub_kind == EntitySubKind::Tank || data.sub_kind == EntitySubKind::Helicopter) && !entity.altitude.is_airborne() {
+                if collision.is_none()
+                    && (data.sub_kind == EntitySubKind::Tank
+                        || data.sub_kind == EntitySubKind::Helicopter)
+                    && !entity.altitude.is_airborne()
+                {
                     repair_eligible = false;
 
-                        if entity.kill_in(delta, Ticks::from_secs(4.0)) {
-                            return Some((index, Fate::Remove(DeathReason::Sunk)));
-                        }
+                    if entity.kill_in(delta, Ticks::from_secs(4.0)) {
+                        return Some((index, Fate::Remove(DeathReason::Sunk)));
+                    }
                 }
 
                 if let Some(collision) = collision {
@@ -292,17 +313,23 @@ impl World {
                             let push = Velocity::from_mps(dot * -150.0);
                             velocity += push;
                         }
-                        if !matches!(data.sub_kind, EntitySubKind::Aeroplane | EntitySubKind::Ekranoplan) {
+                        if !matches!(
+                            data.sub_kind,
+                            EntitySubKind::Aeroplane | EntitySubKind::Ekranoplan
+                        ) {
                             velocity.clamp_magnitude(Velocity::from_mps(5.0))
-                        }
-                        else {
+                        } else {
                             velocity.clamp_magnitude(Velocity::from_mps(35.0))
                         }
                     };
 
                     if !matches!(
                         data.sub_kind,
-                        EntitySubKind::Hovercraft | EntitySubKind::Dredger | EntitySubKind::Drone | EntitySubKind::Tank | EntitySubKind::LandingShip
+                        EntitySubKind::Hovercraft
+                            | EntitySubKind::Dredger
+                            | EntitySubKind::Drone
+                            | EntitySubKind::Tank
+                            | EntitySubKind::LandingShip
                     ) {
                         let is_icebreaker = arctic && data.sub_kind == EntitySubKind::Icebreaker;
                         let max_breakable = if is_icebreaker {
@@ -341,7 +368,11 @@ impl World {
                             return Some((index, Fate::Remove(DeathReason::Terrain)));
                         }
                     }
-                } else if data.kind == EntityKind::Boat && !arctic && data.sub_kind != EntitySubKind::Drone && data.sub_kind != EntitySubKind::Tank {
+                } else if data.kind == EntityKind::Boat
+                    && !arctic
+                    && data.sub_kind != EntitySubKind::Drone
+                    && data.sub_kind != EntitySubKind::Tank
+                {
                     let below_keel = entity.altitude
                         - terrain
                             .sample(entity.transform.position)
@@ -415,9 +446,9 @@ impl World {
                         entity.repair(delta * repair_amount);
                     }
                     entity.transform.velocity = entity
-                            .transform
-                            .velocity
-                            .clamp_magnitude(Velocity::from_mps(max_speed * 3.0));
+                        .transform
+                        .velocity
+                        .clamp_magnitude(Velocity::from_mps(max_speed * 3.0));
 
                     if data.sub_kind == EntitySubKind::Dredger {
                         // Dredgers excavate land they come into contact with.

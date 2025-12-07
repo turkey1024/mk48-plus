@@ -994,7 +994,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_drone_hint(self) -> &'static str { 
+    fn entity_boat_drone_hint(self) -> &'static str {
         match self {
             Arabic => "Your drone is immune to everything!",
             Bork => "Your drone is immune to everything!",
@@ -1011,7 +1011,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_drone_name(self) -> &'static str { 
+    fn entity_boat_drone_name(self) -> &'static str {
         match self {
             Arabic => "Drone",
             Bork => "Drone",
@@ -1096,7 +1096,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_ekranoplan_hint(self) -> &'static str { 
+    fn entity_boat_ekranoplan_hint(self) -> &'static str {
         match self {
             Arabic => "Your ekranoplan can go super fast!",
             Bork => "Your ekranoplan can go super fast!",
@@ -1113,7 +1113,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_ekranoplan_name(self) -> &'static str { 
+    fn entity_boat_ekranoplan_name(self) -> &'static str {
         match self {
             Arabic => "Ekranoplan",
             Bork => "Ekranoplan",
@@ -1130,7 +1130,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_tank_hint(self) -> &'static str { 
+    fn entity_boat_tank_hint(self) -> &'static str {
         match self {
             Arabic => "Your tank is unable to float!",
             Bork => "Your tank is unable to float!",
@@ -1147,7 +1147,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_tank_name(self) -> &'static str { 
+    fn entity_boat_tank_name(self) -> &'static str {
         match self {
             Arabic => "Tank",
             Bork => "Tank",
@@ -1164,7 +1164,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_aeroplane_hint(self) -> &'static str { 
+    fn entity_boat_aeroplane_hint(self) -> &'static str {
         match self {
             Arabic => "Your aeroplane can fly above everything!",
             Bork => "Your aeroplane can fly above everything!",
@@ -1181,7 +1181,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_aeroplane_name(self) -> &'static str { 
+    fn entity_boat_aeroplane_name(self) -> &'static str {
         match self {
             Arabic => "Aeroplane",
             Bork => "Aeroplane",
@@ -1198,7 +1198,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_helicopter_hint(self) -> &'static str { 
+    fn entity_boat_helicopter_hint(self) -> &'static str {
         match self {
             Arabic => "Your helicopter lands on land and is immune to anti-air!",
             Bork => "Your helicopter lands on land and is immune to anti-air!",
@@ -1215,7 +1215,7 @@ impl Mk48Translation for LanguageId {
         }
     }
 
-    fn entity_boat_helicopter_name(self) -> &'static str { 
+    fn entity_boat_helicopter_name(self) -> &'static str {
         match self {
             Arabic => "Helicopter",
             Bork => "Helicopter",
@@ -1458,7 +1458,7 @@ impl Mk48Translation for LanguageId {
             Arabic => "Laser",
             Bork => "Laser",
             English => "Laser",
-            French =>"Laser",
+            French => "Laser",
             German => "Laser",
             Hindi => "Laser",
             Italian => "Laser",

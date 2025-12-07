@@ -255,9 +255,15 @@ impl Entity {
         let data = self.data();
         let other_data = other.data();
 
-        if data.sub_kind == EntitySubKind::Drone {return false;} 
-        if data.sub_kind == EntitySubKind::Aeroplane && other_data.kind == EntityKind::Aircraft {return false;}
-        if data.sub_kind == EntitySubKind::Starship && data.kind == other_data.kind {return false;}
+        if data.sub_kind == EntitySubKind::Drone {
+            return false;
+        }
+        if data.sub_kind == EntitySubKind::Aeroplane && other_data.kind == EntityKind::Aircraft {
+            return false;
+        }
+        if data.sub_kind == EntitySubKind::Starship && data.kind == other_data.kind {
+            return false;
+        }
 
         if data.sub_kind == EntitySubKind::Sam || other_data.sub_kind == EntitySubKind::Sam {
             // SAMs collide if within radius, simulating their blast-fragmentation warheads.
@@ -436,7 +442,12 @@ impl Entity {
     /// underpowered.
     fn special_altitude_overlap(&self) -> bool {
         let data = self.data();
-        (data.sub_kind == EntitySubKind::Torpedo && !data.sensors.any()) || data.sub_kind == EntitySubKind::Mine || data.sub_kind == EntitySubKind::Shell || data.sub_kind == EntitySubKind::TankShell || data.sub_kind == EntitySubKind::Laser || data.sub_kind == EntitySubKind::GlideBomb
+        (data.sub_kind == EntitySubKind::Torpedo && !data.sensors.any())
+            || data.sub_kind == EntitySubKind::Mine
+            || data.sub_kind == EntitySubKind::Shell
+            || data.sub_kind == EntitySubKind::TankShell
+            || data.sub_kind == EntitySubKind::Laser
+            || data.sub_kind == EntitySubKind::GlideBomb
     }
 
     /// Returns true if two entities are overlapping, only taking into account their altitudes.
@@ -447,10 +458,30 @@ impl Entity {
             // Entities above water should never collide with entities below water.
             return false;
         }
-        if (self.altitude.is_airborne() && (self.data().sub_kind == EntitySubKind::Shell || self.data().sub_kind == EntitySubKind::Rocket || self.data().sub_kind == EntitySubKind::Missile || self.data().sub_kind == EntitySubKind::Laser) && !other.altitude.is_submerged()) || (other.altitude.is_airborne() && (other.data().sub_kind == EntitySubKind::Shell || other.data().sub_kind == EntitySubKind::Rocket || other.data().sub_kind == EntitySubKind::Missile || other.data().sub_kind == EntitySubKind::Laser) && !self.altitude.is_submerged()) {
+        if (self.altitude.is_airborne()
+            && (self.data().sub_kind == EntitySubKind::Shell
+                || self.data().sub_kind == EntitySubKind::Rocket
+                || self.data().sub_kind == EntitySubKind::Missile
+                || self.data().sub_kind == EntitySubKind::Laser)
+            && !other.altitude.is_submerged())
+            || (other.altitude.is_airborne()
+                && (other.data().sub_kind == EntitySubKind::Shell
+                    || other.data().sub_kind == EntitySubKind::Rocket
+                    || other.data().sub_kind == EntitySubKind::Missile
+                    || other.data().sub_kind == EntitySubKind::Laser)
+                && !self.altitude.is_submerged())
+        {
             return true;
         }
-        if (self.altitude.is_airborne() && self.data().sub_kind == EntitySubKind::Aeroplane && other.altitude.is_airborne() ) || (other.altitude.is_airborne() && other.data().sub_kind == EntitySubKind::Aeroplane && self.altitude.is_airborne()) {return true;}
+        if (self.altitude.is_airborne()
+            && self.data().sub_kind == EntitySubKind::Aeroplane
+            && other.altitude.is_airborne())
+            || (other.altitude.is_airborne()
+                && other.data().sub_kind == EntitySubKind::Aeroplane
+                && self.altitude.is_airborne())
+        {
+            return true;
+        }
         self.altitude.difference(other.altitude)
             <= if self.special_altitude_overlap() || other.special_altitude_overlap() {
                 Altitude::SPECIAL_OVERLAP_MARGIN
@@ -481,7 +512,10 @@ impl Entity {
         // max and min target altitudes.
         let max_altitude = match data.kind {
             EntityKind::Boat => match data.sub_kind {
-                EntitySubKind::Drone | EntitySubKind::Aeroplane | EntitySubKind::Starship | EntitySubKind::Helicopter => Altitude::MAX,
+                EntitySubKind::Drone
+                | EntitySubKind::Aeroplane
+                | EntitySubKind::Starship
+                | EntitySubKind::Helicopter => Altitude::MAX,
                 EntitySubKind::Ekranoplan => Altitude(10),
                 _ => Altitude::ZERO,
             },
@@ -525,12 +559,13 @@ impl Entity {
 
         let target_altitude = match data.kind {
             EntityKind::Boat => match data.sub_kind {
-                EntitySubKind::Submarine 
-                | EntitySubKind::Ekranoplan => target.unwrap_or(Altitude::ZERO),
-                EntitySubKind::Drone
-                | EntitySubKind::Starship => Altitude::MAX,
-                EntitySubKind::Aeroplane
-                | EntitySubKind::Helicopter => target.unwrap_or(Altitude::MAX),
+                EntitySubKind::Submarine | EntitySubKind::Ekranoplan => {
+                    target.unwrap_or(Altitude::ZERO)
+                }
+                EntitySubKind::Drone | EntitySubKind::Starship => Altitude::MAX,
+                EntitySubKind::Aeroplane | EntitySubKind::Helicopter => {
+                    target.unwrap_or(Altitude::MAX)
+                }
                 _ => Altitude::ZERO,
             },
             EntityKind::Weapon => match data.sub_kind {
@@ -575,7 +610,11 @@ impl Entity {
 
     /// Returns true if and only if two entities are friendly i.e. same player or same team.
     pub fn is_friendly(&self, other: &Self) -> bool {
-        if self.data().sub_kind == EntitySubKind::Drone || other.data().sub_kind == EntitySubKind::Drone {return true;} 
+        if self.data().sub_kind == EntitySubKind::Drone
+            || other.data().sub_kind == EntitySubKind::Drone
+        {
+            return true;
+        }
         self.is_friendly_to_player(other.player.as_deref())
     }
 
@@ -603,7 +642,11 @@ impl Entity {
 
     /// Returns true if and only two entities have some, identical players.
     pub fn has_same_player(&self, other: &Self) -> bool {
-        if self.player.is_none() || other.player.is_none() || self.data().sub_kind == EntitySubKind::Drone || other.data().sub_kind == EntitySubKind::Drone {
+        if self.player.is_none()
+            || other.player.is_none()
+            || self.data().sub_kind == EntitySubKind::Drone
+            || other.data().sub_kind == EntitySubKind::Drone
+        {
             return true;
         }
         self.player.as_ref().unwrap() == other.player.as_ref().unwrap()
