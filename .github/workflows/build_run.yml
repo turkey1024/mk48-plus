@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 permissions:
-  contents: write
+  contents: write  # 必须赋予写权限，才能push代码
 
 jobs:
   build-and-release:
@@ -18,9 +18,12 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 检出代码
+      # 1. 检出代码（注意：需要深度克隆，否则push会失败）
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4  # 升级到v4，更稳定
+        with:
+          fetch-depth: 0  # 深度克隆，获取完整提交历史
+          ref: main  # 推送到main分支（可根据你的主分支名修改，如master）
 
       # 2. 开启虚拟内存 (防止大型编译崩溃)
       - name: Set up Swap Space
@@ -70,13 +73,7 @@ jobs:
           
           # === 关键修改：智能查找二进制文件 ===
           echo ">>> 正在查找编译生成的 server 文件..."
-          
-          # 在 target 目录中查找名为 'server' 的可执行文件
-          # -type f: 找文件
-          # -not -name "*.*": 排除 .d .rlib 等后缀文件
           SERVER_PATH=$(find target -name "server" -type f -executable | head -n 1)
-          
-          # 如果在根目录 target 没找到，尝试在子目录找 (容错)
           if [ -z "$SERVER_PATH" ]; then
              SERVER_PATH=$(find server/target -name "server" -type f -executable 2>/dev/null | head -n 1)
           fi
@@ -87,7 +84,6 @@ jobs:
             chmod +x release_package/mk48-server
           else
             echo "❌ 错误：无法找到名为 'server' 的可执行文件！"
-            echo ">>> 正在列出 target 目录结构帮助排查："
             find target -maxdepth 3 -not -path '*/deps/*'
             exit 1
           fi
@@ -99,11 +95,11 @@ jobs:
           # 复制管理后台资源
           cp -r engine/js/public/* release_package/admin_ui/
           
-          # 压缩
+          # 压缩到仓库根目录（关键：直接生成在仓库根目录）
           tar -czvf mk48-linux-x64.tar.gz -C release_package .
           echo ">>> 打包完成: mk48-linux-x64.tar.gz"
 
-      # 8. 发布 Release
+      # 8. 发布 Release（原逻辑保留）
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -113,7 +109,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 9. 手动测试上传
+      # 9. 手动测试上传 Artifacts（原逻辑保留）
       - name: Upload Artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
@@ -121,3 +117,25 @@ jobs:
           name: mk48-debug-build
           path: mk48-linux-x64.tar.gz
           retention-days: 3
+
+      # ========== 新增步骤：将压缩包推送到仓库根目录 ==========
+      - name: Push Artifact to Repository Root
+        run: |
+          # 配置git用户信息（Action执行的身份）
+          git config --global user.name "GitHub Actions"
+          git config --global user.email "actions@github.com"
+          
+          # 检查是否有文件变更
+          if git status --porcelain | grep -q "mk48-linux-x64.tar.gz"; then
+            # 添加文件到暂存区
+            git add mk48-linux-x64.tar.gz
+            # 提交变更
+            git commit -m "chore: upload mk48-linux-x64.tar.gz to repo root [skip ci]"
+            # 推送到仓库（使用GITHUB_TOKEN鉴权）
+            git push origin main  # 分支名根据你的仓库主分支修改（如master）
+            echo "✅ 成功将 mk48-linux-x64.tar.gz 推送到仓库根目录"
+          else
+            echo "ℹ️ mk48-linux-x64.tar.gz 无变更，无需推送"
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
