@@ -10,7 +10,7 @@ env:
   CARGO_TERM_COLOR: always
 
 permissions:
-  contents: write  # 必须赋予写权限，才能push代码
+  contents: write
 
 jobs:
   build-and-release:
@@ -18,33 +18,17 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # 1. 检出代码（注意：需要深度克隆，否则push会失败）
+      # 1. 检出代码
       - name: Checkout Code
-        uses: actions/checkout@v4  # 升级到v4，更稳定
-        with:
-          fetch-depth: 0  # 深度克隆，获取完整提交历史
-          ref: main  # 推送到main分支（可根据你的主分支名修改，如master）
+        uses: actions/checkout@v3
 
-      # 2. 开启虚拟内存 (防止大型编译崩溃)
-      - name: Set up Swap Space
-        uses: pierotofy/set-swap-space@master
-        with:
-          swap-size-gb: 10
-
-      # 3. 安装 Node.js
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '16'
-
-      # 4. 安装 Rust
+      # 4. 安装 Rust（替换为 dtolnay/rust-toolchain）
       - name: Install Rust Toolchain
-        uses: actions-rs/toolchain@v1
+        uses: dtolnay/rust-toolchain@master
         with:
           toolchain: nightly-2022-08-14
-          override: true
           components: rust-src, rustfmt, clippy
-          target: x86_64-unknown-linux-gnu
+          targets: wasm32-unknown-unknown, x86_64-unknown-linux-gnu
 
       # 5. 安装 Trunk
       - name: Install Trunk
@@ -52,14 +36,10 @@ jobs:
         with:
           version: 'v0.15.0'
 
-      # 6. 编译各个组件
+      # 6. 编译各个组件（移除了重复的 rustup target add，因为上面已通过 targets 参数添加）
       - name: Build Game Client
         working-directory: ./client
         run: trunk build --release
-
-      - name: Build Admin Panel
-        working-directory: ./engine/js
-        run: npm install && npm run build
 
       - name: Build Server
         run: cargo build --release --manifest-path server/Cargo.toml
@@ -69,11 +49,17 @@ jobs:
         run: |
           echo ">>> 开始整理文件..."
           mkdir -p release_package/public
-          mkdir -p release_package/admin_ui
+    
           
           # === 关键修改：智能查找二进制文件 ===
           echo ">>> 正在查找编译生成的 server 文件..."
+          
+          # 在 target 目录中查找名为 'server' 的可执行文件
+          # -type f: 找文件
+          # -not -name "*.*": 排除 .d .rlib 等后缀文件
           SERVER_PATH=$(find target -name "server" -type f -executable | head -n 1)
+          
+          # 如果在根目录 target 没找到，尝试在子目录找 (容错)
           if [ -z "$SERVER_PATH" ]; then
              SERVER_PATH=$(find server/target -name "server" -type f -executable 2>/dev/null | head -n 1)
           fi
@@ -84,6 +70,7 @@ jobs:
             chmod +x release_package/mk48-server
           else
             echo "❌ 错误：无法找到名为 'server' 的可执行文件！"
+            echo ">>> 正在列出 target 目录结构帮助排查："
             find target -maxdepth 3 -not -path '*/deps/*'
             exit 1
           fi
@@ -93,13 +80,13 @@ jobs:
           cp -r client/dist/* release_package/public/
           
           # 复制管理后台资源
-          cp -r engine/js/public/* release_package/admin_ui/
           
-          # 压缩到仓库根目录（关键：直接生成在仓库根目录）
+          
+          # 压缩
           tar -czvf mk48-linux-x64.tar.gz -C release_package .
           echo ">>> 打包完成: mk48-linux-x64.tar.gz"
 
-      # 8. 发布 Release（原逻辑保留）
+      # 8. 发布 Release
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -109,7 +96,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # 9. 手动测试上传 Artifacts（原逻辑保留）
+      # 9. 手动测试上传
       - name: Upload Artifact
         if: github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v4
@@ -118,7 +105,6 @@ jobs:
           path: mk48-linux-x64.tar.gz
           retention-days: 3
 
-      # ========== 新增步骤：将压缩包推送到仓库根目录 ==========
       - name: Push Artifact to Repository Root
         run: |
           # 配置git用户信息（Action执行的身份）
