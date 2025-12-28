@@ -60,7 +60,7 @@ impl GameArenaService for Server {
     /// new returns a game server with the specified parameters.
     fn new(_min_players: usize) -> Self {
         Self {
-            world: World::new(6500.0),
+            world: World::new(1000.0),
             counter: Ticks::ZERO,
         }
     }
@@ -81,7 +81,7 @@ impl GameArenaService for Server {
             use common::entity::EntityData;
             //use common::util::level_to_score;
             use rand::{thread_rng, Rng};
-            let highest_level_score = level_to_score(EntityData::MAX_BOAT_LEVEL);
+            let highest_level_score = 1000000;
             player.score = if player.is_bot() {
                 thread_rng().gen_range(0..=highest_level_score)
             } else {
