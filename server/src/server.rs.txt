@@ -69,27 +69,26 @@ impl GameArenaService for Server {
         10
     }
 
-
-fn player_joined(
-    &mut self,
-    player_tuple: &Arc<PlayerTuple<Self>>,
-    _players: &PlayerRepo<Server>,
-) {
-    let mut player = player_tuple.borrow_player_mut();
-    player.data.flags.left_game = false;
-    
-    // 移除 #[cfg(debug_assertions)] 条件编译指令
-    use rand::{thread_rng, Rng};
-    let initial_score = 99999999;  // 设置初始分数为 99999999
-    
-    player.score = if player.is_bot() {
-        thread_rng().gen_range(0..=initial_score)  // 机器人使用随机分数
-    } else {
-        initial_score  // 人类玩家使用 99999999
-    };
-}
-
-
+    fn player_joined(
+        &mut self,
+        player_tuple: &Arc<PlayerTuple<Self>>,
+        _players: &PlayerRepo<Server>,
+    ) {
+        let mut player = player_tuple.borrow_player_mut();
+        player.data.flags.left_game = false;
+        #[cfg(debug_assertions)]
+        {
+            use common::entity::EntityData;
+            //use common::util::level_to_score;
+            use rand::{thread_rng, Rng};
+            let highest_level_score = 1000000;
+            player.score = if player.is_bot() {
+                thread_rng().gen_range(0..=highest_level_score)
+            } else {
+                highest_level_score
+            };
+        }
+    }
 
     fn player_command(
         &mut self,
