@@ -269,6 +269,7 @@ impl GameArenaService for Server {
 
 }
 
+
 impl Server {
     // 杀死并移除所有机器人
     fn kill_all_bots(&mut self, players: &PlayerRepo<Self>) {
@@ -286,8 +287,8 @@ impl Server {
             if let Some(mut bot) = players.borrow_player_mut(bot_id) {
                 // 如果机器人有实体，从世界中移除
                 if let Status::Alive { entity_index, .. } = bot.status {
-                    // 使用 Collision 作为死亡原因
-                    self.world.remove(entity_index, DeathReason::Collision);
+                    // 使用 Unknown 作为死亡原因（用于离开游戏）
+                    self.world.remove(entity_index, DeathReason::Unknown);
                 }
                 // 标记机器人离开游戏（这样就不会重生了）
                 bot.data.flags.left_game = true;
@@ -297,3 +298,4 @@ impl Server {
         }
     }
 }
+
