@@ -47,11 +47,8 @@ impl World {
         //         }
         //     })
         //     .sum::<f32>();
-
-        let target_radius: f32 = 6500.0;
-        let s = delta.to_secs();
-
-        self.radius += (target_radius - self.radius).clamp(-s, 2.0 * s);
+// 固定边界大小
+self.radius = 1000.0; // 或者你想要的任何固定大小
     }
 
     /// Adds an entity to the world (assigning it an id).

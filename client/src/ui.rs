@@ -344,6 +344,8 @@ fn switch(routes: Mk48Route) -> Html {
         Mk48Route::Settings => html! {
             <SettingsDialog/>
         },
-        Mk48Route::Home => html! {},
+        Mk48Route::Home => html! {
+            <AboutDialog />
+        },
     }
 }

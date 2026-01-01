@@ -24,6 +24,7 @@ use std::time::Duration;
 pub struct Server {
     pub world: World,
     pub counter: Ticks,
+    pub bots_enabled: bool, // 添加机器人开关字段
 }
 
 /// Stores a player, and metadata related to it. Data stored here may only be accessed when processing,
@@ -62,6 +63,7 @@ impl GameArenaService for Server {
         Self {
             world: World::new(1000.0),
             counter: Ticks::ZERO,
+            bots_enabled: true, // 默认启用机器人
         }
     }
 
@@ -69,27 +71,49 @@ impl GameArenaService for Server {
         10
     }
 
+    fn chat_command(
+        &mut self,
+        command: &str,
+        player_id: PlayerId,
+        players: &PlayerRepo<Self>,
+    ) -> Option<String> {
+        match command.trim() {
+            "bot" => {
+                self.bots_enabled = !self.bots_enabled;
+                
+                if !self.bots_enabled {
+                    // 禁用机器人：杀死并移除所有机器人
+                    self.kill_all_bots(players);
+                    Some("Bots disabled. All bots have been removed.".to_string())
+                } else {
+                    // 启用机器人
+                    Some("Bots enabled. Bots will spawn normally.".to_string())
+                }
+            }
+            _ => None,
+        }
+    }
 
-fn player_joined(
-    &mut self,
-    player_tuple: &Arc<PlayerTuple<Self>>,
-    _players: &PlayerRepo<Server>,
-) {
-    let mut player = player_tuple.borrow_player_mut();
-    player.data.flags.left_game = false;
-    
-    // 移除 #[cfg(debug_assertions)] 条件编译指令
-    use rand::{thread_rng, Rng};
-    let initial_score = 99999999;  // 设置初始分数为 99999999
-    
-    player.score = if player.is_bot() {
-        thread_rng().gen_range(0..=initial_score)  // 机器人使用随机分数
-    } else {
-        initial_score  // 人类玩家使用 99999999
-    };
-}
-
-
+    fn player_joined(
+        &mut self,
+        player_tuple: &Arc<PlayerTuple<Self>>,
+        _players: &PlayerRepo<Server>,
+    ) {
+        let mut player = player_tuple.borrow_player_mut();
+        player.data.flags.left_game = false;
+        #[cfg(debug_assertions)]
+        {
+            use common::entity::EntityData;
+            //use common::util::level_to_score;
+            use rand::{thread_rng, Rng};
+            let highest_level_score = 1000000;
+            player.score = if player.is_bot() {
+                thread_rng().gen_range(0..=highest_level_score)
+            } else {
+                highest_level_score
+            };
+        }
+    }
 
     fn player_command(
         &mut self,
@@ -241,4 +265,32 @@ fn player_joined(
         // Needs to be after clients receive updates.
         self.world.terrain.post_update();
     }
+
+    // 杀死并移除所有机器人
+    fn kill_all_bots(&mut self, players: &PlayerRepo<Self>) {
+        use crate::player::Status;
+        use common::death_reason::DeathReason;
+        
+        // 收集所有机器人ID
+        let bot_ids: Vec<PlayerId> = players
+            .iter_borrow()
+            .filter(|player| player.is_bot())
+            .map(|player| player.player_id)
+            .collect();
+        
+        // 移除每个机器人
+        for bot_id in bot_ids {
+            if let Some(mut bot) = players.borrow_player_mut(bot_id) {
+                // 如果机器人有实体，从世界中移除
+                if let Status::Alive { entity_index, .. } = bot.status {
+                    self.world.remove(entity_index, DeathReason::Admin);
+                }
+                // 标记机器人离开游戏（这样就不会重生了）
+                bot.data.flags.left_game = true;
+                // 清除分数
+                bot.score = 0;
+            }
+        }
+    }
 }
+

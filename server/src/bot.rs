@@ -39,6 +39,8 @@ pub struct Bot {
     was_submerging: bool,
     /// Makes sure bot's planes etc despawn
     has_waited_one_tick: bool,
+    /// 添加：控制机器人是否应该活跃
+    pub should_be_active: bool,
 }
 
 impl Default for Bot {
@@ -59,6 +61,7 @@ impl Default for Bot {
             spawned_at_least_once: false,
             was_submerging: false,
             has_waited_one_tick: false,
+            should_be_active: true, // 默认活跃
         }
     }
 }
@@ -83,6 +86,11 @@ impl Bot {
         mut update: U,
         player_id: PlayerId,
     ) -> BotAction<Command> {
+        // 如果机器人不应该活跃，立即退出
+        if !self.should_be_active {
+            return BotAction::Quit;
+        }
+        
         let mut rng = thread_rng();
 
         let mut contacts = update.contacts();
@@ -134,7 +142,8 @@ impl Bot {
                     boat.transform().position + delta_position,
                     terrain,
                     update.world_radius(),
-                ) {
+                )
+                {
                     attract(&mut movement, delta_position, 0.5 * data.length.powi(2));
                 }
             }
