@@ -28,6 +28,7 @@ use engine_macros::SmolRoutable;
 use glam::Vec2;
 use std::collections::HashMap;
 use stylist::yew::styled_component;
+use web_sys::window;  // 新增导入
 use yew::prelude::*;
 use yew_frontend::component::discord_icon::DiscordIcon;
 use yew_frontend::component::github_icon::GithubIcon;
@@ -65,6 +66,34 @@ mod upgrade_overlay;
 
 #[styled_component(Mk48Ui)]
 pub fn mk48_ui(props: &PropertiesWrapper<UiProps>) -> Html {
+    // 添加首次访问检查 - 重定向到关于页面
+    use yew_router::prelude::*;
+    let navigator = use_navigator();
+    
+    // 使用 use_effect 进行重定向（只在组件挂载时执行一次）
+    use_effect_with_deps(move |navigator| {
+        if let Some(nav) = navigator {
+            // 检查是否是首次访问
+            if let Some(window) = window() {
+                if let Ok(Some(local_storage)) = window.local_storage() {
+                    match local_storage.get_item("mk48_has_visited") {
+                        Ok(Some(visited)) if visited == "true" => {
+                            // 已访问过，不重定向
+                        }
+                        _ => {
+                            // 首次访问，重定向到关于页面
+                            nav.push(&Mk48Route::About);
+                            // 标记已访问
+                            let _ = local_storage.set_item("mk48_has_visited", "true");
+                        }
+                    }
+                }
+            }
+        }
+        
+        || {}  // 清理函数，不需要清理
+    }, navigator.clone());
+
     let cinematic_style = css!(
         r#"
         transition: opacity 0.25s;
@@ -345,7 +374,7 @@ fn switch(routes: Mk48Route) -> Html {
             <SettingsDialog/>
         },
         Mk48Route::Home => html! {
-            <AboutDialog />
+            // 主页显示游戏（空内容，游戏已经在上面渲染了）
         },
     }
 }
