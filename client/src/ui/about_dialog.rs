@@ -31,10 +31,24 @@ pub fn about_dialog() -> Html {
         <Dialog title={t.about_title(game_id)}>
 
             <h2>{"Description"}</h2>
-            <p>
-                {format!("欢迎来到mk64服务器(play.czz.asia)，此服由jn运营，源码来自pancake服（github.com/sheumais/mk48-plus）,技术支持请联系turkey(turkeyabout.dpdns.org),玩得开心！")}
-                {format!("本服没有admin面板，你的ip不会被泄露")}
-            </p>
+          <p>
+                {"欢迎来到mk64服务器(play.czz.asia)，此服由jn运营，源码来自"}
+                <a href="https://github.com/sheumais/mk48-plus" target="_blank" rel="noopener noreferrer">
+                {"pancake服"}
+          </a>
+                {"（github.com/sheumais/mk48-plus）,技术支持请联系"}
+                <a href="https://turkeyabout.dpdns.org" target="_blank" rel="noopener noreferrer">
+                {"turkey"}
+           </a>
+                {"（turkeyabout.dpdns.org）,玩得开心！"}
+           </p>
+           <p>
+                {"使用/bot开关人机生成"}
+           </p>
+           <p>
+                {"本服没有admin面板，你的ip不会被泄露"}
+           </p>
+
 
             <p>
                 {format!("{} is an online multiplayer ship combat game created by Softbear Studios. ", game_name)}

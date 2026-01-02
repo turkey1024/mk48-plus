@@ -82,11 +82,9 @@ impl GameArenaService for Server {
                 self.bots_enabled = !self.bots_enabled;
                 
                 if !self.bots_enabled {
-                    // 禁用机器人：杀死并移除所有机器人
-                    self.kill_all_bots(players);
-                    Some("Bots disabled. All bots have been removed.".to_string())
+                    // 返回消息，kill_all_bots 会在 tick 函数中执行
+                    Some("Bots disabled. All bots will be removed.".to_string())
                 } else {
-                    // 启用机器人
                     Some("Bots enabled. Bots will spawn normally.".to_string())
                 }
             }
@@ -101,18 +99,16 @@ impl GameArenaService for Server {
     ) {
         let mut player = player_tuple.borrow_player_mut();
         player.data.flags.left_game = false;
-        #[cfg(debug_assertions)]
-        {
-            use common::entity::EntityData;
-            //use common::util::level_to_score;
-            use rand::{thread_rng, Rng};
-            let highest_level_score = 1000000;
-            player.score = if player.is_bot() {
-                thread_rng().gen_range(0..=highest_level_score)
-            } else {
-                highest_level_score
-            };
-        }
+        
+        // 设置玩家初始分数
+        use rand::{thread_rng, Rng};
+        let initial_score = 99999999;  // 设置初始分数为 99999999
+        
+        player.score = if player.is_bot() {
+            thread_rng().gen_range(500..=2000)  // 机器人使用 500-2000 的随机分数
+        } else {
+            initial_score  // 人类玩家使用 99999999
+        };
     }
 
     fn player_command(
@@ -187,6 +183,11 @@ impl GameArenaService for Server {
         self.counter = self.counter.next();
 
         self.world.update(Ticks::ONE);
+
+        // 如果机器人被禁用，移除所有机器人
+        if !self.bots_enabled {
+            self.kill_all_bots(&mut context.players);
+        }
 
         // Needs to be called before clients receive updates, but after World::update.
         self.world.terrain.pre_update();
@@ -265,17 +266,14 @@ impl GameArenaService for Server {
         // Needs to be after clients receive updates.
         self.world.terrain.post_update();
     }
-
-
 }
-
 
 impl Server {
     // 杀死并移除所有机器人
-    fn kill_all_bots(&mut self, players: &PlayerRepo<Self>) {
+    fn kill_all_bots(&mut self, players: &mut PlayerRepo<Self>) {
         use common::death_reason::DeathReason;
         
-        // 收集所有机器人ID
+        // 收集所有机器人ID（需要先收集，因为在循环中不能同时借用）
         let bot_ids: Vec<PlayerId> = players
             .iter_borrow()
             .filter(|player| player.is_bot())
