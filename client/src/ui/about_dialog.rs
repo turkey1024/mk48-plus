@@ -43,9 +43,6 @@ pub fn about_dialog() -> Html {
                 {"（turkeyabout.dpdns.org）,玩得开心！"}
            </p>
            <p>
-                {"使用/bot开关人机生成"}
-           </p>
-           <p>
                 {"本服没有admin面板，你的ip不会被泄露"}
            </p>
 
